@@ -66,8 +66,39 @@ const mushroomQuestions2 = [
   }
 ];
 
+const mushroomQuestions3 = [
+  {
+    id: 1,
+    image: '/images/zhanmao.jpg',
+    question: '这是什么菌菇?',
+    options: ['毡毛小脆柄菇', '平菇', '大球盖菇', '灵芝'],
+    answer: '毡毛小脆柄菇'
+  },
+  {
+    id: 2,
+    image: '/images/pinggu.jpg',
+    question: '这是什么菌菇?',
+    options: ['毡毛小脆柄菇', '平菇', '大球盖菇', '灵芝'],
+    answer: '平菇'
+  },
+  {
+    id: 3,
+    image: '/images/daqiu.jpg',
+    question: '这是什么菌菇?',
+    options: ['毡毛小脆柄菇', '平菇', '大球盖菇', '灵芝'],
+    answer: '大球盖菇'
+  },
+  {
+    id: 4,
+    image: '/images/lingzhi.jpg',
+    question: '这是什么菌菇?',
+    options: ['毡毛小脆柄菇', '平菇', '大球盖菇', '灵芝'],
+    answer: '灵芝'
+  }
+];
+
 // 将所有题目集合到一个数组中
-const allRounds = [mushroomQuestions1, mushroomQuestions2];
+const allRounds = [mushroomQuestions1, mushroomQuestions2, mushroomQuestions3];
 
 // Fisher-Yates 洗牌算法，用于生成随机排列
 const shuffleArray = (array) => {
@@ -155,7 +186,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>菌菇知识竞猜</h1>
-        <p className="progress-info">第 {completedRounds} 轮 · 第 {currentRound + 1} 组题目 · 题目 {currentIndex + 1}/{questionOrder.length}</p>
+        <p className="progress-info">第 {completedRounds+1} 轮 · 第 {currentRound + 1} 组题目 · 题目 {currentIndex + 1}/{questionOrder.length}</p>
         {currentQuestion && (
           <div className="question-container">
             <div className="image-container">
