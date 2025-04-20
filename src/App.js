@@ -110,6 +110,14 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
+// 添加预加载函数
+const preloadImages = (questions) => {
+  questions.forEach(q => {
+    const img = new Image();
+    img.src = q.image;
+  });
+};
+
 function App() {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -123,6 +131,7 @@ function App() {
   // 组件挂载时生成题目的随机排列
   useEffect(() => {
     generateQuestionOrder();
+    preloadImages(allRounds[currentRound]);
   }, [currentRound]);
 
   // 根据当前索引更新题目
