@@ -127,22 +127,28 @@ function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedRounds, setCompletedRounds] = useState(0);
   const [currentRound, setCurrentRound] = useState(0); // 当前题库轮次，0表示第一轮
+  const [score, setScore] = useState(0); // 记录分数
+  const [gameOver, setGameOver] = useState(false); // 游戏是否结束
+  const totalQuestions = allRounds.reduce((total, round) => total + round.length, 0); // 总题目数
 
   // 组件挂载时生成题目的随机排列
   useEffect(() => {
-    generateQuestionOrder();
-    preloadImages(allRounds[currentRound]);
-  }, [currentRound]);
+    if (!gameOver) {
+      generateQuestionOrder();
+      // 预加载当前轮次的图片
+      preloadImages(allRounds[currentRound]);
+    }
+  }, [currentRound, gameOver]);
 
   // 根据当前索引更新题目
   useEffect(() => {
-    if (questionOrder.length > 0) {
+    if (questionOrder.length > 0 && !gameOver) {
       const questionId = questionOrder[currentIndex];
       // 根据当前轮次选择对应的题库
       const question = allRounds[currentRound].find(q => q.id === questionId);
       setCurrentQuestion(question);
     }
-  }, [questionOrder, currentIndex, currentRound]);
+  }, [questionOrder, currentIndex, currentRound, gameOver]);
 
   // 生成题目的随机排列
   const generateQuestionOrder = () => {
@@ -157,8 +163,11 @@ function App() {
   // 处理选项选择
   const handleOptionSelect = (option) => {
     setSelectedOption(option);
-    if (option === currentQuestion.answer) {
+    const isCorrect = option === currentQuestion.answer;
+    
+    if (isCorrect) {
       setResult('正确！');
+      setScore(prev => prev + 1); // 答对加一分
     } else {
       setResult(`错误！正确答案是：${currentQuestion.answer}`);
     }
@@ -170,15 +179,15 @@ function App() {
     // 如果当前是最后一题
     if (currentIndex === questionOrder.length - 1) {
       // 完成一轮答题
-      setCompletedRounds(prev => prev + 1);
+      const newCompletedRounds = completedRounds + 1;
+      setCompletedRounds(newCompletedRounds);
       
-      // 如果有下一轮题目，切换到下一轮
-      if (currentRound < allRounds.length - 1) {
-        setCurrentRound(prev => prev + 1);
+      // 如果已完成所有3轮题目，游戏结束
+      if (currentRound === allRounds.length - 1) {
+        setGameOver(true);
       } else {
-        // 已经是最后一轮，重新回到第一轮
-        setCurrentRound(0);
-        generateQuestionOrder();
+        // 移至下一轮题目
+        setCurrentRound(prev => prev + 1);
       }
     } else {
       // 移至下一题
@@ -191,35 +200,59 @@ function App() {
     setResult(null);
   };
 
+  // 重新开始游戏
+  const restartGame = () => {
+    setScore(0);
+    setCurrentRound(0);
+    setCompletedRounds(0);
+    setCurrentIndex(0);
+    setGameOver(false);
+    setSelectedOption(null);
+    setShowResult(false);
+    setResult(null);
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <h1>菌菇知识竞猜</h1>
-        <p className="progress-info">第 {completedRounds+1} 轮 · 第 {currentRound + 1} 组题目 · 题目 {currentIndex + 1}/{questionOrder.length}</p>
-        {currentQuestion && (
-          <div className="question-container">
-            <div className="image-container">
-              <img src={currentQuestion.image} alt="菌菇图片" className="mushroom-image" />
-            </div>
-            <h2>{currentQuestion.question}</h2>
-            <div className="options-container">
-              {currentQuestion.options.map((option, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleOptionSelect(option)}
-                  className={`option-button ${selectedOption === option ? (option === currentQuestion.answer ? 'correct' : 'wrong') : ''}`}
-                  disabled={showResult}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-            {showResult && (
-              <div className={`result ${result.includes('正确') ? 'correct-result' : 'wrong-result'}`}>
-                <p>{result}</p>
-                <button onClick={handleNextQuestion} className="next-button">下一题</button>
+        
+        {!gameOver ? (
+          <>
+            <p className="progress-info">第 {currentRound + 1} 组题目 · 题目 {currentIndex + 1}/{questionOrder.length} · 当前得分: {score}/{totalQuestions}</p>
+            {currentQuestion && (
+              <div className="question-container">
+                <div className="image-container">
+                  <img src={currentQuestion.image} alt="菌菇图片" className="mushroom-image" />
+                </div>
+                <h2>{currentQuestion.question}</h2>
+                <div className="options-container">
+                  {currentQuestion.options.map((option, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleOptionSelect(option)}
+                      className={`option-button ${selectedOption === option ? (option === currentQuestion.answer ? 'correct' : 'wrong') : ''}`}
+                      disabled={showResult}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+                {showResult && (
+                  <div className={`result ${result.includes('正确') ? 'correct-result' : 'wrong-result'}`}>
+                    <p>{result}</p>
+                    <button onClick={handleNextQuestion} className="next-button">下一题</button>
+                  </div>
+                )}
               </div>
             )}
+          </>
+        ) : (
+          <div className="game-over">
+            <h2>测验完成！</h2>
+            <p className="score-summary">您的最终得分: {score}/{totalQuestions}</p>
+            <p className="score-percentage">正确率: {Math.round((score / totalQuestions) * 100)}%</p>
+            <button onClick={restartGame} className="restart-button">重新开始</button>
           </div>
         )}
       </header>
